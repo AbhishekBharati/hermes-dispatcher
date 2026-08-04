@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: hermes-rabbitmq
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: hermes_admin
+      RABBITMQ_DEFAULT_PASS: hermes_secret
+      RABBITMQ_ERLANG_COOKIE: "HERMES_RABBITMQ_SECRET_COOKIE_KEY_3.13"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7.0
+    container_name: hermes-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+  mongodb_data:

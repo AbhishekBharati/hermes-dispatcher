@@ -1,3 +1,16 @@
 spring:
   application:
     name: hermes
+
+  data:
+    mongodb:
+      uri: mongodb://root:rootpassword@localhost:27017/hermes?authSource=admin 
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: hermes_admin
+    passowrd: hermes_secret
+
+  server:
+    port: 8080
