@@ -26,6 +26,9 @@ public class NotificationServiceTest {
     @Mock
     private NotificationLogRepository repository;
 
+    @Mock
+    private NotificationPublisher publisher;
+
     @InjectMocks
     private NotificationService notificationService;
 
@@ -42,7 +45,7 @@ public class NotificationServiceTest {
         when(repository.save(any(NotificationLog.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        NotificationLog result = notificationService.logPendingNotification(request);
+        NotificationLog result = notificationService.processNotification(request);
 
         ArgumentCaptor<NotificationLog> captor = ArgumentCaptor.forClass(NotificationLog.class);
         verify(repository).save(captor.capture());
@@ -77,8 +80,8 @@ public class NotificationServiceTest {
         when(repository.save(any(NotificationLog.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        NotificationLog log1 = notificationService.logPendingNotification(request);
-        NotificationLog log2 = notificationService.logPendingNotification(request);
+        NotificationLog log1 = notificationService.processNotification(request);
+        NotificationLog log2 = notificationService.processNotification(request);
 
         assertThat(log1.getNotificationId()).isNotEqualTo(log2.getNotificationId());
     }
@@ -96,7 +99,7 @@ public class NotificationServiceTest {
         when(repository.save(any(NotificationLog.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        NotificationLog smsLog = notificationService.logPendingNotification(smsRequest);
+        NotificationLog smsLog = notificationService.processNotification(smsRequest);
 
         assertThat(smsLog.getChannel()).isEqualTo("SMS");
         assertThat(smsLog.getEventType()).isEqualTo("OTP_VERIFICATION");
@@ -116,7 +119,7 @@ public class NotificationServiceTest {
         when(repository.save(any(NotificationLog.class)))
                 .thenThrow(new RuntimeException("Database connectivity failure"));
 
-        assertThatThrownBy(() -> notificationService.logPendingNotification(request))
+        assertThatThrownBy(() -> notificationService.processNotification(request))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Database connectivity failure");
 
