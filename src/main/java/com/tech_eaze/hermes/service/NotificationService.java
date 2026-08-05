@@ -14,8 +14,9 @@ import java.util.UUID;
 public class NotificationService {
 
     private final NotificationLogRepository repository;
+    private final NotificationPublisher publisher;
 
-    public NotificationLog logPendingNotification(NotificationRequest request){
+    public NotificationLog processNotification(NotificationRequest request){
         NotificationLog pendingLog = NotificationLog.builder()
                 .notificationId(UUID.randomUUID().toString())
                 .userId(request.userId())
@@ -28,6 +29,8 @@ public class NotificationService {
                 .updatedAt(Instant.now())
                 .build();
 
-        return repository.save(pendingLog);
+        NotificationLog savedLog = repository.save(pendingLog);
+        publisher.publish(savedLog);
+        return savedLog;
     }
 }
