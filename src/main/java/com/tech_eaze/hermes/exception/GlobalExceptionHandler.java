@@ -31,4 +31,13 @@ public class GlobalExceptionHandler {
 
         return problemDetail;
     }
+
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleGenericException(Exception ex){
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        problemDetail.setTitle("Internal Server Error");
+        problemDetail.setType(URI.create("https://api.project-hermes.com/errors/internal-server-error"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
 }
