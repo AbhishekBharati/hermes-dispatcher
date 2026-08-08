@@ -17,7 +17,7 @@ public class NotificationConsumerService {
     private final ProviderFactory providerFactory;
 
     public void processNotification(NotificationLog notificationLog){
-        log.info("Porcessing notification ID: {}", notificationLog.getNotificationId());
+        log.info("Processing notification ID: {}", notificationLog.getNotificationId());
         ChannelConfiguration config = configRepository.findById(notificationLog.getChannel())
                 .orElseThrow(() -> new IllegalStateException("No Dashboard configuration found for channel: " + notificationLog.getChannel()));
 

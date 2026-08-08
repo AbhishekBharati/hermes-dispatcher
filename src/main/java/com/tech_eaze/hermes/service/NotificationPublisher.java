@@ -17,8 +17,8 @@ public class NotificationPublisher {
     public void publish(NotificationLog notificationLog){
         String routingKey = notificationLog.getChannel();
 
-        log.info("Publishing notifiation [{}] to exchange [{}] with routing key [{}]",
-                notificationLog.getNotificationId(), EXCHANGE_NAME, notificationLog);
+        log.info("Publishing notification [{}] to exchange [{}] with routing key [{}]",
+                notificationLog.getNotificationId(), EXCHANGE_NAME, notificationLog.getChannel());
 
         rabbitTemplate.convertAndSend(EXCHANGE_NAME, routingKey, notificationLog);
     }
