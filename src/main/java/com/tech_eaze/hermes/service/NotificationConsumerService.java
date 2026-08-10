@@ -13,13 +13,12 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class NotificationConsumerService {
-    private final ChannelConfigurationRepository configRepository;
+    private final ChannelConfigurationService configService;
     private final ProviderFactory providerFactory;
 
     public void processNotification(NotificationLog notificationLog){
         log.info("Processing notification ID: {}", notificationLog.getNotificationId());
-        ChannelConfiguration config = configRepository.findById(notificationLog.getChannel())
-                .orElseThrow(() -> new IllegalStateException("No Dashboard configuration found for channel: " + notificationLog.getChannel()));
+        ChannelConfiguration config = configService.getActiveConfiguration(notificationLog.getChannel());
 
         NotificationChannel provider = providerFactory.getProvider(config.getActiveProvider());
         log.info("Routing notification through {} provider", provider.getProviderCode());

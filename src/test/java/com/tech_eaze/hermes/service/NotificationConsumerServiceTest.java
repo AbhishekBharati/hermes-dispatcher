@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class NotificationConsumerServiceTest {
     @Mock
-    private ChannelConfigurationRepository configRepository;
+    private ChannelConfigurationService configService;
 
     @Mock
     private ProviderFactory providerFactory;
@@ -42,18 +42,18 @@ public class NotificationConsumerServiceTest {
                 .build();
 
         ChannelConfiguration mockConfig = ChannelConfiguration.builder()
-                .channelType("EMAIl")
+                .channelType("EMAIL")
                 .activeProvider("AWS")
                 .credentials(Map.of("apiKey", "12345"))
                 .build();
 
-        when(configRepository.findById("EMAIL")).thenReturn(Optional.of(mockConfig));
+        when(configService.getActiveConfiguration("EMAIL")).thenReturn(mockConfig);
         when(providerFactory.getProvider("AWS")).thenReturn(mockProvider);
         when(mockProvider.send(anyMap(), anyMap())).thenReturn(true);
 
         consumerService.processNotification(mockLog);
 
-        verify(configRepository, times(1)).findById("EMAIL");
+        verify(configService, times(1)).getActiveConfiguration("EMAIL");
         verify(providerFactory, times(1)).getProvider("AWS");
         verify(mockProvider, times(1)).send(mockLog.getPayload(), mockConfig.getCredentials());
     }
@@ -64,10 +64,11 @@ public class NotificationConsumerServiceTest {
                 .channel("UNKNOWN_CHANNEL")
                 .build();
 
-        when(configRepository.findById("UNKNOWN_CHANNEL")).thenReturn(Optional.empty());
+        when(configService.getActiveConfiguration("UNKNOWN_CHANNEL"))
+                .thenThrow(new IllegalArgumentException("No Dashboard configuration found for channel: UNKNOWN_CHANNEL"));
 
         assertThatThrownBy(() -> consumerService.processNotification(mockLog))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("No Dashboard configuration found for channel: UNKNOWN_CHANNEL");
 
         verifyNoInteractions(providerFactory);
