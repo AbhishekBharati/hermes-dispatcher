@@ -21,5 +21,10 @@ spring:
     username: hermes_admin
     password: hermes_secret
 
+  cache:
+    type: caffeine
+    caffeine:
+      spec: expireAfterWrite=5m
+
 server:
   port: 8080
