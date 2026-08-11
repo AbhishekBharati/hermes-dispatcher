@@ -17,6 +17,8 @@ public class RabbitMQConfig {
     public static final String EMAIL_QUEUE = "queue.email";
     public static final String SMS_QUEUE = "queue.sms";
     public static final String WEBHOOK_QUEUE = "queue.webhook";
+    public static final String DLX_EXCHANGE_NAME = "notification.dlx";
+    public static final String DLQ_QUEUE = "queue.dlq";
 
     @Bean
     public DirectExchange mainExchange(){
@@ -80,5 +82,20 @@ public class RabbitMQConfig {
     @Bean
     public MessageConverter jsonMessageConverter(JsonMapper jsonMapper){
         return new JacksonJsonMessageConverter(jsonMapper);
+    }
+
+    @Bean
+    public DirectExchange deadLetterExchange(){
+        return new DirectExchange(DLX_EXCHANGE_NAME);
+    }
+
+    @Bean
+    public Queue deadLetterQueue(){
+        return new Queue(DLQ_QUEUE, true);
+    }
+
+    @Bean
+    public Binding deadLetterBinding(Queue deadLetterQueue, DirectExchange deadLetterExchange){
+        return BindingBuilder.bind(deadLetterQueue).to(deadLetterExchange).with("DEAD_LETTER");
     }
 }

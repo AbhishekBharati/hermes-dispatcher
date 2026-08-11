@@ -27,6 +27,8 @@ public class NotificationRetryService {
             notificationLog.setStatus(NotificationLog.Status.FAILED);
             notificationLog.setUpdatedAt(Instant.now());
             logRepository.save(notificationLog);
+
+            rabbitTemplate.convertAndSend("notification.dlx", "DEAD_LETTER", notificationLog);
             return;
         }
 
