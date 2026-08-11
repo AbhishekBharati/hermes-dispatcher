@@ -32,6 +32,9 @@ public class NotificationConsumerServiceTest {
     private NotificationLogRepository logRepository;
 
     @Mock
+    private NotificationRetryService retryService;
+
+    @Mock
     private NotificationChannel mockProvider;
 
     @InjectMocks
@@ -65,10 +68,11 @@ public class NotificationConsumerServiceTest {
         verify(providerFactory, times(1)).getProvider("AWS");
         verify(mockProvider, times(1)).send(mockLog.getPayload(), mockConfig.getCredentials());
         verify(logRepository, times(1)).save(mockLog);
+        verifyNoInteractions(retryService);
     }
 
     @Test
-    @DisplayName("Should set status to FAILED and save log when provider send fails")
+    @DisplayName("Should trigger retryService when provider send fails")
     void shouldSetStatusToFailed_WhenProviderSendFails() {
         NotificationLog mockLog = NotificationLog.builder()
                 .notificationId(UUID.randomUUID().toString())
@@ -88,14 +92,12 @@ public class NotificationConsumerServiceTest {
 
         consumerService.processNotification(mockLog);
 
-        assertThat(mockLog.getStatus()).isEqualTo(NotificationLog.Status.FAILED);
-        assertThat(mockLog.getUpdatedAt()).isNotNull();
-
-        verify(logRepository, times(1)).save(mockLog);
+        verify(retryService, times(1)).handleRetry(mockLog);
+        verify(logRepository, never()).save(mockLog);
     }
 
     @Test
-    @DisplayName("Should handle exception gracefully, set status to FAILED, and save log when configuration is missing")
+    @DisplayName("Should trigger retryService when configuration is missing or exception occurs")
     void shouldHandleException_WhenNoConfigurationFound() {
         NotificationLog mockLog = NotificationLog.builder()
                 .notificationId(UUID.randomUUID().toString())
@@ -107,10 +109,8 @@ public class NotificationConsumerServiceTest {
 
         consumerService.processNotification(mockLog);
 
-        assertThat(mockLog.getStatus()).isEqualTo(NotificationLog.Status.FAILED);
-        assertThat(mockLog.getUpdatedAt()).isNotNull();
-
         verifyNoInteractions(providerFactory);
-        verify(logRepository, times(1)).save(mockLog);
+        verify(retryService, times(1)).handleRetry(mockLog);
+        verify(logRepository, never()).save(mockLog);
     }
 }
